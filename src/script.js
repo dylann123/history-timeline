@@ -37,6 +37,11 @@ let inputgui = {
 		div.style.width = inputgui.width + "px"
 		div.style.height = inputgui.height + "px"
 		div.style.backgroundColor = "white"
+		div.style.border = "black 1px solid"
+		div.style.boxShadow = "2px 2px gray"
+
+
+
 		document.body.prepend(div)
 	},
 	remove: () => {
@@ -60,11 +65,17 @@ document.addEventListener("mousemove", (e) => {
 })
 
 document.addEventListener("mouseup", (e) => {
-	if(inputgui.mouseOver) return
+	if (inputgui.mouseOver) return
 	if (inputgui.active) {
 		inputgui.remove()
 	} else {
-		inputgui.create(e.x, e.y)
+		let x = e.x
+		let y = e.y
+		if (window.innerWidth - (inputgui.width + e.x) < 0) x -= inputgui.width
+		if (window.innerHeight - (inputgui.height + e.h) < 0) x -= inputgui.height
+		inputgui.x = getRelativePos.x(e.x).toFixed(0)
+		inputgui.y = getRelativePos.y(e.y).toFixed(0)
+		inputgui.create(x, y)
 	}
 })
 
