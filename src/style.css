@@ -1,0 +1,33 @@
+body {
+	overflow: hidden;
+	background-color: lightblue;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	cursor: crosshair;
+}
+
+#mouse-pos-display {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100px;
+	background-color: white;
+}
+
+#timeline {
+	width: 90vw;
+	height: 4px;
+	position: absolute;
+	bottom: 20px;
+	display: block;
+	left: 4.5vw;
+	background-color: black;
+}
+
+#map {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100vw;
+	height: 100vh;
+	z-index: -1;
+}
