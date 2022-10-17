@@ -67,15 +67,22 @@ let inputgui = {
 		div.style.border = "black 1px solid"
 		div.style.boxShadow = "2px 2px gray"
 		div.style.padding = "10px"
+		div.style.zIndex = "1"
 		div.innerHTML = "Create new marker at " + inputgui.x + "," + inputgui.y
 
-
+		let button = document.createElement("button")
+		button.onclick = ()=>{
+			createPoint(inputgui.x,inputgui.y,1)
+			inputgui.remove()
+		}
+		button.innerText = "Submit"
+		div.appendChild(button)
 
 		document.body.prepend(div)
 	},
 	remove: () => {
 		if (document.getElementById("input-box")) {
-			document.getElementById("input-box").remove()
+			document.getElementById("input-box").hidden = true
 			inputgui.active = false
 		}
 	}
