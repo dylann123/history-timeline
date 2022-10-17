@@ -14,6 +14,33 @@ let getRelativePos = {
 	}
 }
 
+let getGlobalPos = {
+	x: (x) => {
+		return x/(maxWidth / window.innerWidth);
+	},
+	y: (y) => {
+		return y/(maxHeight / window.innerHeight);
+	}
+}
+
+let createPoint = (x, y, id = 0) => {
+	const width = 10
+	const height = 10
+
+	let div = document.createElement("div")
+	div.style.backgroundColor = "red"
+	div.style.width = width+"px"
+	div.style.height = height+"px"
+	div.style.borderRadius = "10px"
+	div.style.position = "absolute"
+	div.className = "point"
+	div.id = id
+	div.style.left = getGlobalPos.x(x) - width/2 + "px"
+	div.style.top = getGlobalPos.y(y) - height/2 + "px"
+
+	document.body.prepend(div)
+}
+
 let inputgui = {
 	width: 300,
 	height: 400,
@@ -39,6 +66,8 @@ let inputgui = {
 		div.style.backgroundColor = "white"
 		div.style.border = "black 1px solid"
 		div.style.boxShadow = "2px 2px gray"
+		div.style.padding = "10px"
+		div.innerHTML = "Create new marker at " + inputgui.x + "," + inputgui.y
 
 
 
