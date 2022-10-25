@@ -3,6 +3,8 @@
 const maxWidth = 2000;
 const maxHeight = 1000;
 
+let year = 1400
+
 // Functions
 
 let getRelativePos = {
@@ -16,29 +18,101 @@ let getRelativePos = {
 
 let getGlobalPos = {
 	x: (x) => {
-		return x/(maxWidth / window.innerWidth);
+		return x / (maxWidth / window.innerWidth);
 	},
 	y: (y) => {
-		return y/(maxHeight / window.innerHeight);
+		return y / (maxHeight / window.innerHeight);
 	}
 }
 
-let createPoint = (x, y, id = 0) => {
+let drawPoint = (x, y, title, description) => {
 	const width = 10
 	const height = 10
 
 	let div = document.createElement("div")
 	div.style.backgroundColor = "red"
-	div.style.width = width+"px"
-	div.style.height = height+"px"
+	div.style.width = width + "px"
+	div.style.height = height + "px"
 	div.style.borderRadius = "10px"
 	div.style.position = "absolute"
 	div.className = "point"
-	div.id = id
-	div.style.left = getGlobalPos.x(x) - width/2 + "px"
-	div.style.top = getGlobalPos.y(y) - height/2 + "px"
+	div.style.left = getGlobalPos.x(parseInt(x)) - width / 2 + "px"
+	div.style.top = getGlobalPos.y(parseInt(y)) - height / 2 + "px"
 
-	document.body.prepend(div)
+	div.onmouseover = (e) => {
+		drawHoverText(e.x, e.y, title)
+		inputgui.mouseOver = true
+	}
+	div.onmouseout = (e) => {
+		document.getElementById("hover-text").remove()
+		inputgui.mouseOver = false
+	}
+
+	div.onclick = (e) => {
+		drawHoverText(e.x, e.y, title + "\n" + description)
+		inputgui.active = true
+	}
+
+	document.getElementById("point-container").prepend(div)
+}
+
+let drawHoverText = (x, y, text) => {
+	let div = document.createElement("div")
+	div.innerText = text
+	div.id = "hover-text"
+	div.style.backgroundColor = "white"
+	div.style.border = "1px black solid"
+	div.style.position = "absolute"
+	div.style.top = y + "px"
+	div.style.left = x + "px"
+	div.style.padding = "2px"
+
+	document.body.appendChild(div)
+}
+
+let loadYear = (year) => {
+	let points = document.getElementsByClassName("point")
+	for (let i in points) {
+		if (isNaN(parseInt(i))) break
+		console.log(points[i])
+		points[i].remove()
+	}
+	fetch("/years?year=" + year)
+		.then(res => res.json())
+		.then(data => {
+			console.log(data)
+			document.cookie = "year="+year;
+			for (let i in data) {
+				drawPoint(data[i].x, data[i].y, data[i].title, data[i].description)
+			}
+		})
+}
+
+let uploadPoint = (x, y, year, title, description) => {
+	let payload = {
+		x: x,
+		y: y,
+		year: year,
+		title: title,
+		description: description
+	}
+	fetch('/createpoint', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(payload)
+	}).then(res => res.json()).then(data => console.log("UPLOAD", data));
+}
+
+let deletePoint = (title,description) => {
+	
+}
+
+let getYears = async () => {
+	let output = await fetch("/years")
+	output = output.json()
+	return output
 }
 
 let inputgui = {
@@ -48,7 +122,7 @@ let inputgui = {
 	y: 0,
 	mouseOver: false,
 	active: false,
-	create: (x, y) => {
+	create: async (x, y) => {
 		inputgui.active = true
 		let div = document.createElement("div")
 		div.onmouseover = () => {
@@ -62,7 +136,7 @@ let inputgui = {
 		div.style.top = y + "px"
 		div.style.left = x + "px"
 		div.style.width = inputgui.width + "px"
-		div.style.height = inputgui.height + "px"
+		// div.style.height = inputgui.height + "px"
 		div.style.backgroundColor = "white"
 		div.style.border = "black 1px solid"
 		div.style.boxShadow = "2px 2px gray"
@@ -70,20 +144,82 @@ let inputgui = {
 		div.style.zIndex = "1"
 		div.innerHTML = "Create new marker at " + inputgui.x + "," + inputgui.y
 
+		let title = document.createElement("span")
+		title.innerText = "Title: "
+
+		let titleInput = document.createElement("input")
+		titleInput.placeholder = "Title"
+		titleInput.id = "titleInput"
+
+		let year = document.createElement("span")
+		year.innerText = "Year: "
+
+		let list = document.createElement("datalist")
+		list.id = "yearlist"
+
+		let years = await getYears()
+		for (let i of years) {
+			let year = document.createElement("option")
+			year.value = i.replace(/\.[^/.]+$/, "");
+			list.appendChild(year)
+		}
+
+		let yearInput = document.createElement("input")
+		yearInput.placeholder = "Year"
+		yearInput.id = "yearInput"
+		yearInput.setAttribute("list", "yearlist")
+		yearInput.min = "0"
+		yearInput.type = "number"
+
+		yearInput.appendChild(list)
+
+		let description = document.createElement("span")
+		description.innerText = "Description: "
+
+		let descriptionInput = document.createElement("textarea")
+		descriptionInput.style.resize = "none"
+		descriptionInput.style.width = "98%"
+		descriptionInput.rows = 10
+		descriptionInput.cols = 10
+		descriptionInput.placeholder = "Description"
+		descriptionInput.id = "descriptionInput"
+
 		let button = document.createElement("button")
-		button.onclick = ()=>{
-			createPoint(inputgui.x,inputgui.y,1)
+		button.onclick = () => {
+			drawPoint(inputgui.x, inputgui.y, titleInput.value)
+			console.log(inputgui.x, inputgui.y, yearInput.value, titleInput.value, descriptionInput.value)
+			uploadPoint(inputgui.x, inputgui.y, yearInput.value, titleInput.value, descriptionInput.value)
+			inputgui.mouseOver = false
 			inputgui.remove()
 		}
 		button.innerText = "Submit"
+
+		div.appendChild(document.createElement("br"))
+		div.appendChild(document.createElement("br"))
+
+		div.appendChild(title)
+		div.appendChild(titleInput)
+
+		div.appendChild(document.createElement("br"))
+
+		div.appendChild(year)
+		div.appendChild(yearInput)
+
+		div.appendChild(document.createElement("br"))
+
+		div.appendChild(description)
+		div.appendChild(document.createElement("br"))
+		div.appendChild(descriptionInput)
+
+		div.appendChild(document.createElement("br"))
 		div.appendChild(button)
 
 		document.body.prepend(div)
 	},
 	remove: () => {
+		inputgui.active = false
 		if (document.getElementById("input-box")) {
-			document.getElementById("input-box").hidden = true
-			inputgui.active = false
+			document.getElementById("input-box").remove()
 		}
 	}
 }
@@ -100,14 +236,15 @@ document.addEventListener("mousemove", (e) => {
 	document.getElementById("mouse-pos-display").innerHTML = `${x}, ${y}`;
 })
 
-document.addEventListener("mouseup", (e) => {
+document.addEventListener("mousedown", (e) => {
 	if (inputgui.mouseOver) return
+	if (document.getElementById("hover-text")) document.getElementById("hover-text").remove()
 	if (inputgui.active) {
 		inputgui.remove()
 	} else {
 		let x = e.x
 		let y = e.y
-		if (window.innerWidth - (inputgui.width + e.x) < 0) x -= inputgui.width
+		if (window.innerWidth - (inputgui.width + e.x) < 0) x -= inputgui.width + 20
 		if (window.innerHeight - (inputgui.height + e.h) < 0) x -= inputgui.height
 		inputgui.x = getRelativePos.x(e.x).toFixed(0)
 		inputgui.y = getRelativePos.y(e.y).toFixed(0)
@@ -115,3 +252,6 @@ document.addEventListener("mouseup", (e) => {
 	}
 })
 
+// Load
+
+loadYear(document.cookie.split("year=")[1] || 1400)
