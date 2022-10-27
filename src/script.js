@@ -35,23 +35,25 @@ let drawPoint = (x, y, title, description) => {
 	div.style.height = height + "px"
 	div.style.borderRadius = "10px"
 	div.style.position = "absolute"
+	div.setAttribute("data-title", title)
+	div.setAttribute("data-description", description)
 	div.className = "point"
 	div.style.left = getGlobalPos.x(parseInt(x)) - width / 2 + "px"
 	div.style.top = getGlobalPos.y(parseInt(y)) - height / 2 + "px"
 
-	div.onmouseover = (e) => {
-		drawHoverText(e.x, e.y, title)
-		inputgui.mouseOver = true
-	}
-	div.onmouseout = (e) => {
-		document.getElementById("hover-text").remove()
-		inputgui.mouseOver = false
-	}
+	// div.onmouseover = (e) => {
+	// 	drawHoverText(e.x, e.y, title)
+	// 	inputgui.mouseOver = true
+	// }
+	// div.onmouseout = (e) => {
+	// 	document.getElementById("hover-text").remove()
+	// 	inputgui.mouseOver = false
+	// }
 
-	div.onclick = (e) => {
-		drawHoverText(e.x, e.y, title + "\n" + description)
-		inputgui.active = true
-	}
+	// div.onclick = (e) => {
+	// 	drawHoverText(e.x, e.y, title + "\n" + description)
+	// 	inputgui.active = true
+	// }
 
 	document.getElementById("point-container").prepend(div)
 }
@@ -69,19 +71,32 @@ let drawHoverText = (x, y, text) => {
 
 	document.body.appendChild(div)
 }
+let drawDetailedText = (x, y, title, description) => {
+	let div = document.createElement("div")
+	div.innerHTML = "<b>" + title + "</b><br />" + description
+	div.id = "detailed-text"
+	div.style.backgroundColor = "white"
+	div.style.border = "1px black solid"
+	div.style.position = "absolute"
+	div.style.top = y + "px"
+	div.style.left = x + "px"
+	div.style.padding = "2px"
+
+	document.body.appendChild(div)
+}
 
 let loadYear = (year) => {
 	let points = document.getElementsByClassName("point")
 	for (let i in points) {
 		if (isNaN(parseInt(i))) break
-		console.log(points[i])
+		// console.log(points[i])
 		points[i].remove()
 	}
 	fetch("/years?year=" + year)
 		.then(res => res.json())
 		.then(data => {
-			console.log(data)
-			document.cookie = "year="+year;
+			// console.log(data)
+			document.cookie = "year=" + year;
 			for (let i in data) {
 				drawPoint(data[i].x, data[i].y, data[i].title, data[i].description)
 			}
@@ -102,11 +117,12 @@ let uploadPoint = (x, y, year, title, description) => {
 			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify(payload)
-	}).then(res => res.json()).then(data => console.log("UPLOAD", data));
+	})
+	// .then(res => res.json()).then(data => console.log("UPLOAD", data));
 }
 
-let deletePoint = (title,description) => {
-	
+let deletePoint = (title, description) => {
+
 }
 
 let getYears = async () => {
@@ -187,7 +203,7 @@ let inputgui = {
 		let button = document.createElement("button")
 		button.onclick = () => {
 			drawPoint(inputgui.x, inputgui.y, titleInput.value)
-			console.log(inputgui.x, inputgui.y, yearInput.value, titleInput.value, descriptionInput.value)
+			// console.log(inputgui.x, inputgui.y, yearInput.value, titleInput.value, descriptionInput.value)
 			uploadPoint(inputgui.x, inputgui.y, yearInput.value, titleInput.value, descriptionInput.value)
 			inputgui.mouseOver = false
 			inputgui.remove()
@@ -221,12 +237,19 @@ let inputgui = {
 		if (document.getElementById("input-box")) {
 			document.getElementById("input-box").remove()
 		}
+		if (document.getElementById("detailed-text")) {
+			document.getElementById("detailed-text").remove()
+		}
 	}
 }
 
 // Event listeners
 
 document.addEventListener("mousemove", (e) => {
+	if (document.getElementById("hover-text")) {
+		document.getElementById("hover-text").remove()
+		inputgui.mouseOver = false
+	}
 	let x = e.clientX;
 	let y = e.clientY;
 
@@ -234,9 +257,24 @@ document.addEventListener("mousemove", (e) => {
 	y = getRelativePos.y(y).toFixed(0);
 
 	document.getElementById("mouse-pos-display").innerHTML = `${x}, ${y}`;
+
+	if (document.elementFromPoint(e.x, e.y).hasAttribute("data-title") && !document.getElementById("detailed-text")) {
+		drawHoverText(e.x + 1, e.y + 1, document.elementFromPoint(e.x, e.y).getAttribute("data-title"))
+		inputgui.mouseOver = true
+	}
 })
 
 document.addEventListener("mousedown", (e) => {
+	if (document.elementFromPoint(e.x, e.y).hasAttribute("data-title")) {
+		if(!document.getElementById("detailed-text")){
+			drawDetailedText(e.x, e.y, document.elementFromPoint(e.x, e.y).getAttribute("data-title"), document.elementFromPoint(e.x, e.y).getAttribute("data-description"))
+			inputgui.active = true
+		}else{
+			document.getElementById("detailed-text").remove()
+			inputgui.active = false
+		}
+		return
+	}
 	if (inputgui.mouseOver) return
 	if (document.getElementById("hover-text")) document.getElementById("hover-text").remove()
 	if (inputgui.active) {
@@ -254,4 +292,6 @@ document.addEventListener("mousedown", (e) => {
 
 // Load
 
+
 loadYear(document.cookie.split("year=")[1] || 1400)
+
