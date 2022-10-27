@@ -36,12 +36,39 @@ app.post('/createpoint', (req, res) => {
 		res.send("{\"success\":false}")
 	} else {
 		console.log({ x: req.body.x, y: req.body.y, title: req.body.title, description: req.body.description })
-		let yearData = fs.readFileSync(__dirname + "/timeline/" + req.body.year + ".json")
+		let year = __dirname + "/timeline/" + req.body.year + ".json"
+		if (!fs.existsSync(year)) {
+			fs.writeFileSync(year, "[]")
+		}
+		let yearData = fs.readFileSync(year)
 		yearData = JSON.parse(yearData)
 		yearData.push({ x: req.body.x, y: req.body.y, title: req.body.title, description: req.body.description })
 		yearData = JSON.stringify(yearData, null, 4)
-		fs.writeFileSync(__dirname + "/timeline/" + req.body.year + ".json",yearData)
+		fs.writeFileSync(year, yearData)
 		res.send("{\"success\":true}")
+	}
+})
+
+app.post("/deletepoint", (req, res) => {
+	if (req.body.year && req.body.x && req.body.y) {
+		let year = __dirname + "/timeline/" + req.body.year + ".json"
+		if (fs.existsSync(year)) {
+			let data = fs.readFileSync(year)
+			data = JSON.parse(data)
+			let success = false
+			data.forEach((point) => {
+				if(point["x"] == req.body.x && point["y"] == req.body.y){
+					data.splice(data.indexOf(point),1)
+					res.send("{\"success\":\"true\"}")
+					success = true
+				}
+			})
+			if(!success) res.send("{\"error\":\"invalid year\"}")
+		} else {
+			res.send("{\"error\":\"invalid year\"}")
+		}
+	} else {
+		res.send("{\"success\":false}")
 	}
 })
 

@@ -86,12 +86,10 @@ let drawDetailedText = (x, y, title, description) => {
 }
 
 let loadYear = (year) => {
-	let points = document.getElementsByClassName("point")
-	for (let i in points) {
-		if (isNaN(parseInt(i))) break
-		// console.log(points[i])
-		points[i].remove()
-	}
+	let points = document.querySelectorAll(".point")
+	points.forEach((elem)=>{
+		elem.remove()
+	})
 	fetch("/years?year=" + year)
 		.then(res => res.json())
 		.then(data => {
@@ -117,12 +115,28 @@ let uploadPoint = (x, y, year, title, description) => {
 			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify(payload)
-	})
-	// .then(res => res.json()).then(data => console.log("UPLOAD", data));
+	}).then(res => res.json()).then(data => {
+		console.log("UPLOAD", data)
+		loadYear(year)
+	});
 }
 
-let deletePoint = (title, description) => {
-
+let deletePoint = (year, x, y) => {
+	let payload = {
+		x: x,
+		y: y,
+		year: year
+	}
+	fetch('/deletepoint', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(payload)
+	}).then(res => res.json()).then(data => {
+		console.log("DELETE", data)
+		loadYear(year)
+	});
 }
 
 let getYears = async () => {
@@ -266,10 +280,10 @@ document.addEventListener("mousemove", (e) => {
 
 document.addEventListener("mousedown", (e) => {
 	if (document.elementFromPoint(e.x, e.y).hasAttribute("data-title")) {
-		if(!document.getElementById("detailed-text")){
+		if (!document.getElementById("detailed-text")) {
 			drawDetailedText(e.x, e.y, document.elementFromPoint(e.x, e.y).getAttribute("data-title"), document.elementFromPoint(e.x, e.y).getAttribute("data-description"))
 			inputgui.active = true
-		}else{
+		} else {
 			document.getElementById("detailed-text").remove()
 			inputgui.active = false
 		}
