@@ -26,7 +26,7 @@ app.get('/years', (req, res) => {
 			res.sendFile(__dirname + "/timeline/" + req.query.year + ".json")
 		} else {
 			res.send("[]")
-			console.log("l")
+			console.log("Year " + req.query.year + " is not valid.")
 		}
 	}
 })
@@ -56,15 +56,21 @@ app.post("/deletepoint", (req, res) => {
 			let data = fs.readFileSync(year)
 			data = JSON.parse(data)
 			let success = false
-			data.forEach((point) => {
-				if(point["x"] == req.body.x && point["y"] == req.body.y){
-					data.splice(data.indexOf(point),1)
+			for (let i in data) {
+				let point = data[i]
+				console.log(`${point["x"]},${point["y"]} compared to ${req.body.x},${req.body.y}`)
+				if (point["x"] == req.body.x && point["y"] == req.body.y) {
+					data.splice(i, 1)
+					data = JSON.stringify(data, null, 4)
+					fs.writeFile(year, data, () => { })
+					console.log(point["x"] + "," + point["y"] + " deleted in year " + year + " at index " + i)
 					res.send("{\"success\":\"true\"}")
 					success = true
 				}
-			})
-			if(!success) res.send("{\"error\":\"invalid year\"}")
+			}
+			if (!success) res.send("{\"error\":\"invalid year\"}")
 		} else {
+			console.log(req.body.year + " is not valid. ")
 			res.send("{\"error\":\"invalid year\"}")
 		}
 	} else {
