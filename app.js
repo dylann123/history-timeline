@@ -35,14 +35,15 @@ app.post('/createpoint', (req, res) => {
 	if (!req.body.x || !req.body.y || !req.body.title || !req.body.description || !req.body.year) {
 		res.send("{\"success\":false}")
 	} else {
-		console.log({ x: req.body.x, y: req.body.y, title: req.body.title, description: req.body.description })
+		const point = { x: req.body.x, y: req.body.y, title: req.body.title, description: req.body.description }
+		console.log("CREATE "+JSON.stringify(point))
 		let year = __dirname + "/timeline/" + req.body.year + ".json"
 		if (!fs.existsSync(year)) {
 			fs.writeFileSync(year, "[]")
 		}
 		let yearData = fs.readFileSync(year)
 		yearData = JSON.parse(yearData)
-		yearData.push({ x: req.body.x, y: req.body.y, title: req.body.title, description: req.body.description })
+		yearData.push(point)
 		yearData = JSON.stringify(yearData, null, 4)
 		fs.writeFileSync(year, yearData)
 		res.send("{\"success\":true}")
@@ -63,10 +64,11 @@ app.post("/deletepoint", (req, res) => {
 					data.splice(i, 1)
 					data = JSON.stringify(data, null, 4)
 					fs.writeFile(year, data, () => { })
-					console.log(point["x"] + "," + point["y"] + " deleted in year " + year + " at index " + i)
+					console.log("DELETE "+point["x"] + "," + point["y"] + " in year " + req.body.year + " at index " + i)
 					res.send("{\"success\":\"true\"}")
 					success = true
 				}
+				if(success) break
 			}
 			if (!success) res.send("{\"error\":\"invalid year\"}")
 		} else {

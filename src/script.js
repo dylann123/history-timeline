@@ -132,7 +132,7 @@ let uploadPoint = (x, y, year, title, description) => {
 	});
 }
 
-let deletePoint = (year, x, y, confirmation = true) => {
+let deletePoint = (x, y, year, confirmation = true) => {
 	if (confirmation) {
 		let input = confirm("Are you sure you want to delete this point?")
 		if (!input) return
@@ -334,7 +334,8 @@ let inputgui = {
 		button.onclick = () => {
 			deletePoint(pointX, pointY, pointYear, false)
 			drawPoint(pointX, pointY, titleInput.value, descriptionInput.value)
-			uploadPoint(inputgui.x, inputgui.y, yearInput.value, titleInput.value, descriptionInput.value)
+			uploadPoint(pointX.toString(), pointY.toString(), yearInput.value, titleInput.value, descriptionInput.value)
+			console.log(pointX, pointY, yearInput.value, titleInput.value, descriptionInput.value)
 			inputgui.mouseOver = false
 			inputgui.remove()
 		}
@@ -343,7 +344,7 @@ let inputgui = {
 		let deleteButton = document.createElement("button")
 		deleteButton.onclick = () => {
 			console.log(pointYear)
-			deletePoint(pointYear,pointX, pointY)
+			deletePoint(pointX, pointY,pointYear)
 			inputgui.mouseOver = false
 			inputgui.remove()
 		}
