@@ -22,6 +22,17 @@ body {
 	left: 4.5vw;
 	background-color: black;
 }
+.timeline-year{
+	width: 5px;
+	height: 20px;
+	position: absolute;
+	top: -8px;
+}
+.timeline-year:hover{
+	width: 7px;
+	height: 25px;
+	top: -10.5px;
+}
 
 #map {
 	position: absolute;

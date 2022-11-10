@@ -73,6 +73,7 @@ let drawHoverText = (x, y, text) => {
 
 	document.body.appendChild(div)
 }
+
 let drawDetailedText = (x, y, title, description) => {
 	let div = document.createElement("div")
 	div.innerHTML = "<b>" + title + "</b><br />" + description
@@ -97,6 +98,7 @@ let drawDetailedText = (x, y, title, description) => {
 }
 
 let loadYear = (yearInput) => {
+	globalYear = yearInput
 	let points = document.querySelectorAll(".point")
 	points.forEach((elem) => {
 		elem.remove()
@@ -109,6 +111,7 @@ let loadYear = (yearInput) => {
 			for (let i in data) {
 				drawPoint(data[i].x, data[i].y, data[i].title, data[i].description)
 			}
+			
 		})
 }
 
@@ -160,6 +163,36 @@ let getYears = async () => {
 	let output = await fetch("/years")
 	output = output.json()
 	return output
+}
+
+let loadTimelineYears = async () => {
+	document.querySelectorAll(".timeline-year").forEach((element)=>{
+		element.remove()
+	})
+
+
+	let timeline = document.getElementById("timeline")
+	let years = await getYears()
+	for (let i in years) {
+		years[i] = years[i].split(".")[0]
+	}
+
+	for (let i in years) {
+		let div = document.createElement("div")
+		div.className = "timeline-year"
+		if (years[i] == globalYear) {
+			div.style.backgroundColor = "white"
+		} else {
+			div.style.backgroundColor = "black"
+		}
+
+		div.style.left = ((i / (years.length - 1 || 1)) * (90)) + "vw"
+		div.onclick = () => {
+			loadYear(years[i])
+			loadTimelineYears()
+		}
+		timeline.appendChild(div)
+	}
 }
 
 let inputgui = {
@@ -344,7 +377,7 @@ let inputgui = {
 		let deleteButton = document.createElement("button")
 		deleteButton.onclick = () => {
 			console.log(pointYear)
-			deletePoint(pointX, pointY,pointYear)
+			deletePoint(pointX, pointY, pointYear)
 			inputgui.mouseOver = false
 			inputgui.remove()
 		}
@@ -420,6 +453,7 @@ document.addEventListener("mousedown", (e) => {
 		return
 	}
 	if (inputgui.mouseOver) return
+	if (document.elementFromPoint(e.x, e.y).className == 'timeline-year') return
 	if (document.getElementById("hover-text")) document.getElementById("hover-text").remove()
 	if (inputgui.active) {
 		inputgui.remove()
@@ -436,6 +470,5 @@ document.addEventListener("mousedown", (e) => {
 
 // Load
 
-
+loadTimelineYears()
 loadYear(document.cookie.split("year=")[1] || 1400)
-
