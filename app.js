@@ -36,7 +36,7 @@ app.post('/createpoint', (req, res) => {
 		res.send("{\"success\":false}")
 	} else {
 		const point = { x: req.body.x, y: req.body.y, title: req.body.title, description: req.body.description }
-		console.log("CREATE "+JSON.stringify(point))
+		console.log("CREATE " + JSON.stringify(point))
 		let year = __dirname + "/timeline/" + req.body.year + ".json"
 		if (!fs.existsSync(year)) {
 			fs.writeFileSync(year, "[]")
@@ -64,11 +64,15 @@ app.post("/deletepoint", (req, res) => {
 					data.splice(i, 1)
 					data = JSON.stringify(data, null, 4)
 					fs.writeFile(year, data, () => { })
-					console.log("DELETE "+point["x"] + "," + point["y"] + " in year " + req.body.year + " at index " + i)
+					console.log("DELETE " + point["x"] + "," + point["y"] + " in year " + req.body.year + " at index " + i)
 					res.send("{\"success\":\"true\"}")
 					success = true
 				}
-				if(success) break
+				if (success) break
+			} 
+			if (data.length == 2) { // i have no idea
+				fs.unlinkSync(year)
+
 			}
 			if (!success) res.send("{\"error\":\"invalid year\"}")
 		} else {

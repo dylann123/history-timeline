@@ -42,6 +42,7 @@ let drawPoint = (x, y, title, description) => {
 	div.className = "point"
 	div.style.left = getGlobalPos.x(parseInt(x)) - width / 2 + "px"
 	div.style.top = getGlobalPos.y(parseInt(y)) - height / 2 + "px"
+	div.style.cursor = "pointer"
 
 	// div.onmouseover = (e) => {
 	// 	drawHoverText(e.x, e.y, title)
@@ -97,7 +98,7 @@ let drawDetailedText = (x, y, title, description) => {
 	document.body.appendChild(div)
 }
 
-let loadYear = (yearInput) => {
+let loadYear = async (yearInput) => {
 	globalYear = yearInput
 	let points = document.querySelectorAll(".point")
 	points.forEach((elem) => {
@@ -105,13 +106,18 @@ let loadYear = (yearInput) => {
 	})
 	fetch("/years?year=" + yearInput)
 		.then(res => res.json())
-		.then(data => {
+		.then(async (data) => {
 			// console.log(data)
-			document.cookie = "year=" + yearInput;
-			for (let i in data) {
-				drawPoint(data[i].x, data[i].y, data[i].title, data[i].description)
+			if (data.length == 0) {
+				let years = await getYears()
+				globalYear = parseInt(years[0].substring(0, years[0].indexOf(".json")))
+				loadYear(globalYear)
+			} else {
+				for (let i in data) {
+					drawPoint(data[i].x, data[i].y, data[i].title, data[i].description)
+				}
 			}
-			
+			document.cookie = "year=" + globalYear;
 		})
 }
 
@@ -132,6 +138,7 @@ let uploadPoint = (x, y, year, title, description) => {
 	}).then(res => res.json()).then(data => {
 		console.log("UPLOAD", data)
 		loadYear(year)
+		loadTimelineYears()
 	});
 }
 
@@ -156,6 +163,7 @@ let deletePoint = (x, y, year, confirmation = true) => {
 	}).then(res => res.json()).then(data => {
 		console.log("DELETE", data)
 		loadYear(globalYear)
+		loadTimelineYears()
 	});
 }
 
@@ -166,17 +174,18 @@ let getYears = async () => {
 }
 
 let loadTimelineYears = async () => {
-	document.querySelectorAll(".timeline-year").forEach((element)=>{
+	document.querySelectorAll(".timeline-year").forEach((element) => {
 		element.remove()
 	})
 
 
 	let timeline = document.getElementById("timeline")
 	let years = await getYears()
-	for (let i in years) {
-		years[i] = years[i].split(".")[0]
+	for(let i in years){
+		years[i] = parseInt(years[i].split(".")[0])
 	}
-
+	years = years.sort((a, b) => a - b);
+	console.log(years);
 	for (let i in years) {
 		let div = document.createElement("div")
 		div.className = "timeline-year"
@@ -187,6 +196,8 @@ let loadTimelineYears = async () => {
 		}
 
 		div.style.left = ((i / (years.length - 1 || 1)) * (90)) + "vw"
+		div.style.cursor = "grab"
+		div.setAttribute("data-year",years[i])
 		div.onclick = () => {
 			loadYear(years[i])
 			loadTimelineYears()
@@ -438,6 +449,9 @@ document.addEventListener("mousemove", (e) => {
 	}
 	if (document.elementFromPoint(e.x, e.y).id == "edit-button") {
 		inputgui.mouseOver = true
+	}
+	if (document.elementFromPoint(e.x,e.y).className == "timeline-year"){
+		drawHoverText(e.x+1,e.y+1, document.elementFromPoint(e.x,e.y).getAttribute("data-year"))
 	}
 })
 
