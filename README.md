@@ -21,9 +21,9 @@ not sure why you would ever want to deploy this but
 `git clone https://github.com/dylann123/history-timeline.git`
 or you can download and unzip the file
 
-2. install required dependencies via `npm install` or `yarn -i`
+2. enter the folder via `cd history-timeline`
 
-3. enter the folder via `cd history-timeline`
+3. install required dependencies via `npm install` or `yarn -i`
 
 4. deploy using node via `node app.js`
 
